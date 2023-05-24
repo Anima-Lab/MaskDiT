@@ -10,6 +10,11 @@ We use the pre-trained VAE to first encode the ImageNet dataset into latent spac
 ```
 python3 download_assets.py --name vae --dest assets
 ```
+You can also directly download the dataset we have prepared by running
+```
+python3 download_assets.py --name imagenet-latent-data --dest [destination directory]
+```
+
 ## Train
 To train from scratch, run
 ```bash
@@ -34,4 +39,4 @@ First, download the reference from [ADM repo](https://github.com/openai/guided-d
 ```bash
 python3 download_assets.py --name imagenet256 --dest [destination directory]
 ```
-Then we can use either the evaluator from [ADM repo](https://github.com/openai/guided-diffusion/tree/main/evaluations) or `fid.py` to evaluate the generated samples.
+Then we use the evaluator from [ADM repo](https://github.com/openai/guided-diffusion/tree/main/evaluations), or `fid.py`, or `evaluator.py` to evaluate the generated samples.

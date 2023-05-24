@@ -9,7 +9,9 @@ _url_dict = {
     'imagenet64': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/64/VIRTUAL_imagenet64_labeled.npz',
     'vae': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/autoencoder_kl.pth',
     'maskdit-finetune0': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/2075000.pt',
-    'maskdit-trained': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/2000000.pt'
+    'maskdit-finetune-cos': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/cos-2037500.pt',
+    'maskdit-trained': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/2000000.pt', 
+    'imagenet-latent-data': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet_256_latent_lmdb.zip',
 }
 
 
