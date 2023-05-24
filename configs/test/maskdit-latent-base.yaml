@@ -34,15 +34,14 @@ train:
 
 eval: # FID evaluation
   batchsize: 50
-  ref_path: /diffusion_ws/ViT_Diffusion/assets/fid_stats/fid_stats_imagenet256_guided_diffusion.npz
+  ref_path: assets/fid_stats/fid_stats_imagenet256_guided_diffusion.npz
 
 log:
   log_every: 500
   ckpt_every: 50_000
-#  tag: baseline-original-seed
   tag: baseline
 
 wandb:
-  entity: vit-diffusion
-  project: DiT-ImageNet256-latent-self-cond
+  entity: MaskDiT
+  project: MaskDiT-ImageNet256-latent
   group: baseline-no-sc-256
