@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) [2023] [Anima-Lab]
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import os
 from argparse import ArgumentParser
 import requests
@@ -8,8 +30,8 @@ _url_dict = {
     'imagenet128': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/128/VIRTUAL_imagenet128_labeled.npz',
     'imagenet64': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/64/VIRTUAL_imagenet64_labeled.npz',
     'vae': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/autoencoder_kl.pth',
-    'maskdit-finetune0': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/2075000.pt',
-    'maskdit-finetune-cos': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/cos-2037500.pt',
+    'maskdit-unmask-finetune': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_with_guidance.pt',
+    'maskdit-cos-finetune': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_without_guidance.pt',
     'maskdit-trained': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/2000000.pt', 
     'imagenet-latent-data': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet_256_latent_lmdb.zip',
 }

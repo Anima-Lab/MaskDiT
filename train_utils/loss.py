@@ -1,111 +1,70 @@
+# MIT License
+
+# Copyright (c) [2023] [Anima-Lab]
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# This code is adapted from https://github.com/NVlabs/edm/blob/main/training/loss.py. 
+# The original code is licensed under a Creative Commons 
+# Attribution-NonCommercial-ShareAlike 4.0 International License, which is can be found at LICENSE_EDM.txt. 
+
 """Loss functions used in the paper
 "Elucidating the Design Space of Diffusion-Based Generative Models"."""
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
 from utils import *
 
 
-# ----------------------------------------------------------------------------
-# Loss function corresponding to the variance preserving (VP) formulation
-# from the paper "Score-Based Generative Modeling through Stochastic
-# Differential Equations".
-
-class VPLoss:
-    def __init__(self, beta_d=19.9, beta_min=0.1, epsilon_t=1e-5, class_dropout_prob=0.0):
-        self.beta_d = beta_d
-        self.beta_min = beta_min
-        self.epsilon_t = epsilon_t
-        self.class_dropout_prob = class_dropout_prob
-
-    def __call__(self, net, images, labels, mask_ratio=0, mae_loss_coef=0, feat=None, augment_pipe=None):
-        rnd_uniform = torch.rand([images.shape[0], 1, 1, 1], device=images.device)
-        sigma = self.sigma(1 + rnd_uniform * (self.epsilon_t - 1))
-        weight = 1 / sigma ** 2
-        y, augment_labels = augment_pipe(images) if augment_pipe is not None else (images, None)
-        n = torch.randn_like(y) * sigma
-        if self.class_dropout_prob > 0 and np.random.rand() < self.class_dropout_prob:
-            labels = labels * 0.0
-            mask_ratio = 0
-        model_out = net(y + n, sigma, labels, mask_ratio=mask_ratio, feat=feat, augment_labels=augment_labels)
-        D_yn = model_out['x']
-        loss = weight * ((D_yn - y) ** 2)  # (N, C, H, W)
-        if mask_ratio > 0:
-            assert net.training and 'mask' in model_out
-            loss = F.avg_pool2d(loss.mean(dim=1), net.module.model.patch_size).flatten(1)  # (N, L)
-            unmask = 1 - model_out['mask']
-            loss = (loss * unmask).sum(dim=1) / unmask.sum(dim=1)  # (N)
-            if mae_loss_coef > 0:
-                loss += mae_loss_coef * mae_loss(net.module, y + n, D_yn, 1 - unmask)
-        else:
-            loss = mean_flat(loss)  # (N)
-        return loss
-
-    def sigma(self, t):
-        t = torch.as_tensor(t)
-        return ((0.5 * self.beta_d * (t ** 2) + self.beta_min * t).exp() - 1).sqrt()
-
-
-# ----------------------------------------------------------------------------
-# Loss function corresponding to the variance exploding (VE) formulation
-# from the paper "Score-Based Generative Modeling through Stochastic
-# Differential Equations".
-
-class VELoss:
-    def __init__(self, sigma_min=0.02, sigma_max=100, class_dropout_prob=0.0):
-        self.sigma_min = sigma_min
-        self.sigma_max = sigma_max
-        self.class_dropout_prob = class_dropout_prob
-
-    def __call__(self, net, images, labels, mask_ratio=0, mae_loss_coef=0, feat=None, augment_pipe=None):
-        rnd_uniform = torch.rand([images.shape[0], 1, 1, 1], device=images.device)
-        sigma = self.sigma_min * ((self.sigma_max / self.sigma_min) ** rnd_uniform)
-        weight = 1 / sigma ** 2
-        y, augment_labels = augment_pipe(images) if augment_pipe is not None else (images, None)
-        n = torch.randn_like(y) * sigma
-        if self.class_dropout_prob > 0 and np.random.rand() < self.class_dropout_prob:
-            labels = labels * 0.0
-            mask_ratio = 0
-        model_out = net(y + n, sigma, labels, mask_ratio=mask_ratio, feat=feat, augment_labels=augment_labels)
-        D_yn = model_out['x']
-        loss = weight * ((D_yn - y) ** 2)  # (N, C, H, W)
-        if mask_ratio > 0:
-            assert net.training and 'mask' in model_out
-            loss = F.avg_pool2d(loss.mean(dim=1), net.module.model.patch_size).flatten(1)  # (N, L)
-            unmask = 1 - model_out['mask']
-            loss = (loss * unmask).sum(dim=1) / unmask.sum(dim=1)  # (N)
-            if mae_loss_coef > 0:
-                loss += mae_loss_coef * mae_loss(net.module, y + n, D_yn, 1 - unmask)
-        else:
-            loss = mean_flat(loss)  # (N)
-        return loss
-
-
-# ----------------------------------------------------------------------------
 # Improved loss function proposed in the paper "Elucidating the Design Space
 # of Diffusion-Based Generative Models" (EDM).
 
 class EDMLoss:
-    def __init__(self, P_mean=-1.2, P_std=1.2, sigma_data=0.5, class_dropout_prob=0.0, uncond_mask_ratio=0.0):
+    def __init__(self, P_mean=-1.2, P_std=1.2, sigma_data=0.5):
         self.P_mean = P_mean
         self.P_std = P_std
         self.sigma_data = sigma_data
-        self.class_dropout_prob = class_dropout_prob
-        self.uncond_mask_ratio = uncond_mask_ratio
 
-    def __call__(self, net, images, labels=None, mask_ratio=0, mae_loss_coef=0, feat=None, augment_pipe=None):
+    def __call__(self, net,
+                 images, 
+                 encoder=None,      # ema encoder to encode x_t
+                 labels=None, 
+                 mask_ratio=0, 
+                 cond_mask_ratio=0,
+                 mae_loss_coef=0, 
+                 feat=None, augment_pipe=None):
+        # sample x_t
         rnd_normal = torch.randn([images.shape[0], 1, 1, 1], device=images.device)
         sigma = (rnd_normal * self.P_std + self.P_mean).exp()
         weight = (sigma ** 2 + self.sigma_data ** 2) / (sigma * self.sigma_data) ** 2
         y, augment_labels = augment_pipe(images) if augment_pipe is not None else (images, None)
         n = torch.randn_like(y) * sigma
-        # set lable to None with probability self.class_dropout_prob
-        if self.class_dropout_prob > 0 and np.random.rand() < self.class_dropout_prob:
-            labels = labels * 0.0
-            mask_ratio = self.uncond_mask_ratio
-        model_out = net(y + n, sigma, labels, mask_ratio=mask_ratio, feat=feat, augment_labels=augment_labels)
+
+        # encode x_t
+        if encoder is not None:
+            with torch.no_grad():
+                feat = encoder.encode(y + n, sigma, labels, mask_ratio=cond_mask_ratio, feat=feat)
+        else:
+            mask_dict = None 
+
+        model_out = net(y + n, sigma, labels, mask_ratio=mask_ratio, mask_dict=None, feat=feat)
         D_yn = model_out['x']
         assert D_yn.shape == y.shape
         loss = weight * ((D_yn - y) ** 2)  # (N, C, H, W)
@@ -120,15 +79,14 @@ class EDMLoss:
         else:
             loss = mean_flat(loss)  # (N)
         assert loss.ndim == 1
-        if self.uncond_mask_ratio == 0.0:
-            loss += 0 * torch.sum(net.module.model.mask_token)
         return loss
+
 
 # ----------------------------------------------------------------------------
 
 
 Losses = {
-    'vp': VPLoss, 've': VELoss, 'edm': EDMLoss
+    'edm': EDMLoss
 }
 
 
@@ -163,13 +121,3 @@ def mae_loss(net, target, pred, mask, norm_pix_loss=True):
     loss = (loss * mask).sum(dim=1) / mask.sum(dim=1)  # mean loss on removed patches, (N)
     assert loss.ndim == 1
     return loss
-
-# def mask_ratio_schedule(sigma, ln_sigma_min=-4.8, ln_sigma_max=2.4, mask_ratio_min=0, mask_ratio_max=0.8):
-#     # log-linear schedule
-#
-#     A = (mask_ratio_max - mask_ratio_min) / (ln_sigma_min - ln_sigma_max)
-#     B = (mask_ratio_min * ln_sigma_min - mask_ratio_max * ln_sigma_max) / (ln_sigma_min - ln_sigma_max)
-#     mask_ratio = np.clip(A * np.log(sigma) + B, mask_ratio_min, mask_ratio_max)
-#     return mask_ratio
-
-

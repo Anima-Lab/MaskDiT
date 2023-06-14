@@ -1,3 +1,32 @@
+# MIT License
+
+# Copyright (c) [2023] [Anima-Lab]
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+# This code is adapted from https://github.com/facebookresearch/mae/blob/main/models_mae.py 
+# and https://github.com/facebookresearch/DiT/blob/main/models.py. 
+# The original code is licensed under a Attribution-NonCommercial 4.0 InternationalCreative Commons License, 
+# which is can be found at LICENSE_MAE.txt and LICENSE_DIT.txt.
+
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -706,177 +735,6 @@ DiT_models = {
 
 
 # ----------------------------------------------------------------------------
-# Preconditioning corresponding to the variance preserving (VP) formulation
-# from the paper "Score-Based Generative Modeling through Stochastic
-# Differential Equations".
-
-class VPPrecond(nn.Module):
-    def __init__(self,
-                 img_resolution,  # Image resolution.
-                 img_channels,  # Number of color channels.
-                 num_classes=0,  # Number of class labels, 0 = unconditional.
-                 beta_d=19.9,  # Extent of the noise level schedule.
-                 beta_min=0.1,  # Initial slope of the noise level schedule.
-                 M=1000,  # Original number of timesteps in the DDPM formulation.
-                 epsilon_t=1e-5,  # Minimum t-value used during training.
-                 model_type='DiT-B/2',  # Class name of the underlying model.
-                 **model_kwargs,  # Keyword arguments for the underlying model.
-                 ):
-        super().__init__()
-        self.img_resolution = img_resolution
-        self.img_channels = img_channels
-        self.num_classes = num_classes
-        self.beta_d = beta_d
-        self.beta_min = beta_min
-        self.M = M
-        self.epsilon_t = epsilon_t
-        self.sigma_min = float(self.sigma(epsilon_t))
-        self.sigma_max = float(self.sigma(1))
-        self.model = DiT_models[model_type](input_size=img_resolution, in_channels=img_channels,
-                                            num_classes=num_classes, **model_kwargs)
-
-    def forward(self, x, sigma, class_labels=None, cfg_scale=None, **model_kwargs):
-        model_fn = self.model if cfg_scale is None else partial(self.model.forward_with_cfg, cfg_scale=cfg_scale)
-
-        sigma = sigma.to(x.dtype).reshape(-1, 1, 1, 1)
-        class_labels = None if self.num_classes == 0 else \
-            torch.zeros([x.shape[0], self.num_classes], device=x.device) if class_labels is None else \
-                class_labels.to(x.dtype).reshape(-1, self.num_classes)
-
-        c_skip = 1
-        c_out = -sigma
-        c_in = 1 / (sigma ** 2 + 1).sqrt()
-        c_noise = (self.M - 1) * self.sigma_inv(sigma)
-
-        model_out = model_fn((c_in * x).to(x.dtype), c_noise.flatten(), y=class_labels, **model_kwargs)
-        F_x = model_out['x']
-        D_x = c_skip * x + c_out * F_x
-        model_out['x'] = D_x
-        return model_out
-
-    def sigma(self, t):
-        t = torch.as_tensor(t)
-        return ((0.5 * self.beta_d * (t ** 2) + self.beta_min * t).exp() - 1).sqrt()
-
-    def sigma_inv(self, sigma):
-        sigma = torch.as_tensor(sigma)
-        return ((self.beta_min ** 2 + 2 * self.beta_d * (1 + sigma ** 2).log()).sqrt() - self.beta_min) / self.beta_d
-
-    def round_sigma(self, sigma):
-        return torch.as_tensor(sigma)
-
-
-# ----------------------------------------------------------------------------
-# Preconditioning corresponding to the variance exploding (VE) formulation
-# from the paper "Score-Based Generative Modeling through Stochastic
-# Differential Equations".
-
-class VEPrecond(nn.Module):
-    def __init__(self,
-                 img_resolution,  # Image resolution.
-                 img_channels,  # Number of color channels.
-                 num_classes=0,  # Number of class labels, 0 = unconditional.
-                 sigma_min=0.02,  # Minimum supported noise level.
-                 sigma_max=100,  # Maximum supported noise level.
-                 model_type='DiT-B/2',  # Class name of the underlying model.
-                 **model_kwargs,  # Keyword arguments for the underlying model.
-                 ):
-        super().__init__()
-        self.img_resolution = img_resolution
-        self.img_channels = img_channels
-        self.num_classes = num_classes
-        self.sigma_min = sigma_min
-        self.sigma_max = sigma_max
-        self.model = DiT_models[model_type](input_size=img_resolution, in_channels=img_channels,
-                                            num_classes=num_classes, **model_kwargs)
-
-    def forward(self, x, sigma, class_labels=None, cfg_scale=None, **model_kwargs):
-        model_fn = self.model if cfg_scale is None else partial(self.model.forward_with_cfg, cfg_scale=cfg_scale)
-
-        sigma = sigma.to(x.dtype).reshape(-1, 1, 1, 1)
-        class_labels = None if self.num_classes == 0 else \
-            torch.zeros([x.shape[0], self.num_classes], device=x.device) if class_labels is None else \
-                class_labels.to(x.dtype).reshape(-1, self.num_classes)
-
-        c_skip = 1
-        c_out = sigma
-        c_in = 1
-        c_noise = (0.5 * sigma).log()
-
-        model_out = model_fn((c_in * x).to(x.dtype), c_noise.flatten(), y=class_labels, **model_kwargs)
-        F_x = model_out['x']
-        D_x = c_skip * x + c_out * F_x
-        model_out['x'] = D_x
-        return model_out
-
-    def round_sigma(self, sigma):
-        return torch.as_tensor(sigma)
-
-
-# ----------------------------------------------------------------------------
-# Preconditioning corresponding to improved DDPM (iDDPM) formulation from
-# the paper "Improved Denoising Diffusion Probabilistic Models".
-
-class iDDPMPrecond(nn.Module):
-    def __init__(self,
-                 img_resolution,  # Image resolution.
-                 img_channels,  # Number of color channels.
-                 num_classes=0,  # Number of class labels, 0 = unconditional.
-                 C_1=0.001,  # Timestep adjustment at low noise levels.
-                 C_2=0.008,  # Timestep adjustment at high noise levels.
-                 M=1000,  # Original number of timesteps in the DDPM formulation.
-                 model_type='DiT-B/2',  # Class name of the underlying model.
-                 **model_kwargs,  # Keyword arguments for the underlying model.
-                 ):
-        super().__init__()
-        self.img_resolution = img_resolution
-        self.img_channels = img_channels
-        self.num_classes = num_classes
-        self.C_1 = C_1
-        self.C_2 = C_2
-        self.M = M
-        self.model = DiT_models[model_type](input_size=img_resolution, in_channels=img_channels,
-                                            num_classes=num_classes, learn_sigma=True, **model_kwargs)
-
-        u = torch.zeros(M + 1)
-        for j in range(M, 0, -1):  # M, ..., 1
-            u[j - 1] = ((u[j] ** 2 + 1) / (self.alpha_bar(j - 1) / self.alpha_bar(j)).clip(min=C_1) - 1).sqrt()
-        self.register_buffer('u', u)
-        self.sigma_min = float(u[M - 1])
-        self.sigma_max = float(u[0])
-
-    def forward(self, x, sigma, class_labels=None, cfg_scale=None, **model_kwargs):
-        model_fn = self.model if cfg_scale is None else partial(self.model.forward_with_cfg, cfg_scale=cfg_scale)
-
-        sigma = sigma.to(x.dtype).reshape(-1, 1, 1, 1)
-        class_labels = None if self.num_classes == 0 else \
-            torch.zeros([x.shape[0], self.num_classes], device=x.device) if class_labels is None else \
-                class_labels.to(x.dtype).reshape(-1, self.num_classes)
-
-        c_skip = 1
-        c_out = -sigma
-        c_in = 1 / (sigma ** 2 + 1).sqrt()
-        c_noise = self.M - 1 - self.round_sigma(sigma, return_index=True).to(x.dtype)
-
-        model_out = model_fn((c_in * x).to(x.dtype), c_noise.flatten(), y=class_labels, **model_kwargs)
-        F_x = model_out['x']
-        D_x = c_skip * x + c_out * F_x
-        model_out['x'] = D_x
-        return model_out
-
-    def alpha_bar(self, j):
-        j = torch.as_tensor(j)
-        return (0.5 * np.pi * j / self.M / (self.C_2 + 1)).sin() ** 2
-
-    def round_sigma(self, sigma, return_index=False):
-        sigma = torch.as_tensor(sigma)
-        index = torch.cdist(sigma.to(self.u.device).to(sigma.dtype).reshape(1, -1, 1),
-                            self.u.reshape(1, -1, 1)).argmin(2)
-        result = index if return_index else self.u[index.flatten()].to(sigma.dtype)
-        return result.reshape(sigma.shape).to(sigma.device)
-
-
-# ----------------------------------------------------------------------------
 # Improved preconditioning proposed in the paper "Elucidating the Design
 # Space of Diffusion-Based Generative Models" (EDM).
 
@@ -938,5 +796,5 @@ class EDMPrecond(nn.Module):
 
 
 Precond_models = {
-    'vp': VPPrecond, 've': VEPrecond, 'edm': EDMPrecond
+    'edm': EDMPrecond
 }

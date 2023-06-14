@@ -4,25 +4,22 @@ Official implementation of the paper "Fast Training of Diffusion Models with Mas
 While masked transformers have been extensively explored for representation learning, their application to generative learning is less explored in the vision domain. Our work is the first to exploit masked training to reduce the training cost of diffusion models significantly. Specifically, we randomly mask out a high proportion (e.g., 50%) of patches in diffused input images during training. For masked training, we introduce an asymmetric encoder-decoder architecture consisting of a transformer encoder that operates only on unmasked patches and a lightweight transformer decoder on full patches. To promote a long-range understanding of full patches, we add an auxiliary task of reconstructing masked patches to the denoising score matching objective that learns the score of unmasked patches. Experiments on ImageNet-256x256 show that our approach achieves the same performance as the state-of-the-art Diffusion Transformer (DiT) model, using only 31% of its original training time.  Thus, our method allows for efficient training of diffusion models without sacrificing the generative performance._
 
 
-<img src="docs/maskdit_arch.png" alt="Architecture" width="830" height="810" style="display: block; margin: 0 auto;"/>
+<img src="docs/maskdit_arch.png" alt="Architecture" width="680" height="670" style="display: block; margin: 0 auto;"/>
 
 
 
 
 ## Training efficiency
 Our MaskDiT applies Automatic Mixed Precision (AMP) by default. We also add the MaskDiT without AMP (Ours_ft32) for reference. 
-<table>
-  <tr>
-    <td><img src="docs/bar_speed.png" width=75% style="display: block; margin: 0 auto;"></td>
-    <td><img src="docs/bar_mem.png" width=75%  style="display: block; margin: 0 auto;"></td>
-  </tr>
-</table>
 
+
+<img src="docs/bar_speed.png" width=45% style="display: inline-block;">
+<img src="docs/bar_mem.png" width=47.5%  style="display: inline-block;">
 
 ## Requirements
-- 8 A100 GPUs are needed for training. 
+- We ran our training of MaskDiT on 8 A100 GPUs for around 270 hours. 
 - At least one high-end GPU for sampling. 
-- `Dockerfile` is provided for exact software environment. 
+- [Dockerfile](Dockerfile) is provided for exact software environment. 
 
 ## Prepare dataset
 We use the pre-trained VAE to first encode the ImageNet dataset into latent space. You can download the pre-trained VAE by using `download_assets.py`. 
@@ -39,8 +36,8 @@ To train from scratch, run
 ```bash
 python3 train_latent.py --config configs/train/maskdit-latent-base.yaml --num_process_per_node 8
 ```
-
-We also provide code for training MaskDiT without pre-encoded dataset in `train.py`. This is only for reference. We did not test it. 
+To finetune, 
+We also provide code for training MaskDiT without pre-encoded dataset in `train.py`. This is only for reference. We did not fully test it. 
 
 
 ## Generate samples
@@ -54,8 +51,8 @@ Checkpoints of MaskDiT can be downloaded by running `download_assets.py`. For ex
 python3 download_assets.py --name maskdit-finetune0 --dest results
 ```
 We provide the following checkpoints. 
-- Checkpoint with best FID without guidance: [203750.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/cos-2037500.pt)
-- Checkpoint with best FID with guidance: [207500.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/2075000.pt)
+- Checkpoint with best FID 5.69 without guidance: [imagenet256-ckpt-best_without_guidance.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/cos-2037500.pthttps://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_without_guidance.pt)
+- Checkpoint with best FID 2.28 with guidance: [imagenet256-ckpt-best_with_guidance.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/2075000.pthttps://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_with_guidance.pt)
 
 
 <img src="docs/12samples_compressed.png" title="Generated samples from MaskDiT" width="850" style="display: block; margin: 0 auto;"/>
@@ -67,15 +64,15 @@ First, download the reference from [ADM repo](https://github.com/openai/guided-d
 ```bash
 python3 download_assets.py --name imagenet256 --dest [destination directory]
 ```
-Then we use the evaluator from [ADM repo](https://github.com/openai/guided-diffusion/tree/main/evaluations), or `fid.py`, or `evaluator.py` to evaluate the generated samples.
-Generative performance on ImageNet-256x256
+Then we use the evaluator `evaluator.py` from [ADM repo](https://github.com/openai/guided-diffusion/tree/main/evaluations), or `fid.py` from [EDM repo](https://github.com/NVlabs/edm), to evaluate the generated samples.
 
-The area of each bubble indicates the FLOPs for a single forward pass during training.
-<table>
-  <tr>
-    <td><img src="docs/bubble_gflops_wg.png" width=75% style="display: block; margin: 0 auto;"></td>
-    <td><img src="docs/bubble_gflops_wog.png" width=75%  style="display: block; margin: 0 auto;"></td>
-  </tr>
-</table>
+<img src="docs/bubble_gflops_wg.png" width=45% style="display: inline-block;">
+<img src="docs/bubble_gflops_wog.png" width=45%  style="display: inline-block;">
+<p align='center'> Generative performance on ImageNet-256x256. The area of each bubble indicates the FLOPs for a single forward pass during training. <p\>
+
 
 ## Citation
+
+
+## Acknowledgements
+Thanks to the open source codebases such as [DiT](https://github.com/facebookresearch/DiT), [MAE](https://github.com/facebookresearch/mae), [U-ViT](https://github.com/baofff/U-ViT), [ADM](https://github.com/openai/guided-diffusion), and [EDM](https://github.com/NVlabs/edm). Our codebase is built on them. 
