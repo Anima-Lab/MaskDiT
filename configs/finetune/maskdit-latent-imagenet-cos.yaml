@@ -19,7 +19,6 @@ model:
   mask_ratio: 0.0
   mask_ratio_fn: cos4 
   mask_ratio_min: 0
-  cond_mask_ratio: 0
   mae_loss_coef: 0.1
   class_dropout_prob: 0.1
   self_cond: False
