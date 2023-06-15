@@ -1,3 +1,8 @@
+# MIT License
+
+# Copyright (c) [2023] [Anima-Lab]
+
+
 import numpy as np
 
 
