@@ -13,8 +13,7 @@ While masked transformers have been extensively explored for representation lear
 Our MaskDiT applies Automatic Mixed Precision (AMP) by default. We also add the MaskDiT without AMP (Ours_ft32) for reference. 
 
 
-<img src="docs/bar_speed.png" width=45% style="display: inline-block;">
-<img src="docs/bar_mem.png" width=45%  style="display: inline-block;">
+<img src="docs/bar_speed.png" width=45% style="display: inline-block;"><img src="docs/bar_mem.png" width=47.5%  style="display: inline-block;">
 
 ## Requirements
 - We ran our training of MaskDiT on 8 A100 GPUs for around 270 hours. 
@@ -32,15 +31,18 @@ python3 download_assets.py --name imagenet-latent-data --dest [destination direc
 ```
 
 ## Train
-To train from scratch, run
+We first train MaskDiT with 50% mask ratio with AMP enabled. 
 ```bash
 python3 train_latent.py --config configs/train/maskdit-latent-imagenet.yaml --num_process_per_node 8
+```
+We then finetune with unmasking. For example, 
+```bash
+python3 train_latent.py --config configs/finetune/maskdit-latent-imagenet-const.yaml --ckpt_path [path to checkpoint] --use_ckpt_path False --use_strict_load False --no_amp
 ```
 
 <details><summary>Train on the original ImageNet. Click to expand. </summary>
   
-  We also provide code for training MaskDiT without pre-encoded dataset in `train.py`. This is only for reference. We did not fully test it. First, prepare the original [ImageNet dataset](https://image-net.org/download.php). 
-
+  We also provide code for training MaskDiT without pre-encoded dataset in `train.py`. This is only for reference. We did not fully test it. After preparing the original [ImageNet dataset](https://image-net.org/download.php), run 
   ```bash
   python3 train.py --config configs/train/maskdit-imagenet.yaml --num_process_per_node 8
   ```
@@ -75,8 +77,7 @@ python3 download_assets.py --name imagenet256 --dest [destination directory]
 ```
 Then we use the evaluator `evaluator.py` from [ADM repo](https://github.com/openai/guided-diffusion/tree/main/evaluations), or `fid.py` from [EDM repo](https://github.com/NVlabs/edm), to evaluate the generated samples.
 
-<img src="docs/bubble_gflops_wg.png" width=45% style="display: inline-block;">
-<img src="docs/bubble_gflops_wog.png" width=45%  style="display: inline-block;">
+<img src="docs/bubble_gflops_wg.png" width=45% style="display: inline-block;"><img src="docs/bubble_gflops_wog.png" width=45%  style="display: inline-block;">
 <p align='center'> Generative performance on ImageNet-256x256. The area of each bubble indicates the FLOPs for a single forward pass during training. <p\>
 
 
