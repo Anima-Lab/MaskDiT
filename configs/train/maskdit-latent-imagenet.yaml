@@ -25,7 +25,7 @@ model:
 train:
   tf32: False
   amp: True
-  batchsize: 32   # batchsize per GPU
+  batchsize: 128   # batchsize per GPU
   grad_accum: 1
   epochs: 2800
   lr: 0.0001

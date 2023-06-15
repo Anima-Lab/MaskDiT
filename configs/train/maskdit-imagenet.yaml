@@ -1,8 +1,8 @@
 data:
   dataset: imagenet256-latent
   category: lmdb
-  resolution: 32
-  num_channels: 4
+  resolution: 256
+  num_channels: 3
   random_flip: True
   root: /imagenet_lmdb/train
   feat_path: None
@@ -26,7 +26,7 @@ model:
 train:
   tf32: False
   amp: True
-  batchsize: 32   # batchsize per GPU
+  batchsize: 128   # batchsize per GPU
   grad_accum: 1
   epochs: 2800
   lr: 0.0001
