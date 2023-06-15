@@ -69,6 +69,8 @@ class EDMLoss:
                 loss += mae_loss_coef * mae_loss(net.module, y + n, D_yn, 1 - unmask)
         else:
             loss = mean_flat(loss)  # (N)
+        if mask_ratio == 0.0:
+            loss += 0 * torch.sum(net.module.model.mask_token)
         assert loss.ndim == 1
         return loss
 

@@ -36,7 +36,7 @@ import torch.distributed as dist
 from torch.multiprocessing import Process
 from tqdm import tqdm
 
-from models.dit import Precond_models, DiT_models
+from models.maskdit import Precond_models, DiT_models
 from utils import *
 import autoencoder
 

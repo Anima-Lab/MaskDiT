@@ -160,8 +160,7 @@ def train_loop(args):
         model_type=config.model.model_type,
         use_decoder=config.model.use_decoder,
         mae_loss_coef=config.model.mae_loss_coef,
-        pad_cls_token=config.model.pad_cls_token,
-        use_encoder_feat=config.model.self_cond,
+        pad_cls_token=config.model.pad_cls_token
     )
     # Note that parameter initialization is done within the model constructor
     ema = deepcopy(model).to(device)  # Create an EMA of the model for use after training
@@ -220,7 +219,6 @@ def train_loop(args):
     model.train()  # important! This enables embedding dropout for classifier-free guidance
     ema.eval()  # EMA model should always be in eval mode
 
-    encoder = ema if config.model.self_cond else None
     scaler = torch.cuda.amp.GradScaler(enabled=enable_amp)
 
     # Variables for monitoring/logging purposes:
@@ -234,12 +232,7 @@ def train_loop(args):
         mprint(f"Beginning epoch {epoch}...")
         for x, cond in loader:
             x = x.to(device)
-            if isinstance(cond, list):
-                assert len(cond) == 2
-                y, feat = cond[0].to(device), cond[1].to(device)
-            else:
-                y = cond.to(device)
-                feat = None
+            y = cond.to(device)
             x = sample(x)
             # Accumulate gradients.
             loss_batch = 0
@@ -255,10 +248,8 @@ def train_loop(args):
                     
                     with torch.autocast(device_type="cuda", enabled=enable_amp):
                         loss = loss_fn(net=model, images=x_, labels=y_, 
-                                       encoder=encoder, 
                                        mask_ratio=curr_mask_ratio,
-                                       cond_mask_ratio=config.model.cond_mask_ratio,
-                                       mae_loss_coef=config.model.mae_loss_coef, feat=feat)
+                                       mae_loss_coef=config.model.mae_loss_coef)
                         loss_mean = loss.sum().mul(1 / batch_gpu_total)
                     # loss_mean.backward()
                     scaler.scale(loss_mean).backward()
@@ -276,6 +267,8 @@ def train_loop(args):
             running_loss += loss_batch
             log_steps += 1
             train_steps += 1
+            if train_steps > (train_steps_start + config.train.max_num_steps):
+                break
             if train_steps % log_every == 0:
                 # Measure training speed:
                 torch.cuda.synchronize()
