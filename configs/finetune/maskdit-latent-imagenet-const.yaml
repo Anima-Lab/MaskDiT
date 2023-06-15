@@ -35,16 +35,16 @@ train:
   max_num_steps: 100_000
 
 eval: # FID evaluation
-  cfg_scales: [1.6, 1.7]
+  cfg_scales: [1.5, 1.6]
   batchsize: 50
   ref_path: assets/fid_stats/fid_stats_imagenet256_guided_diffusion.npz
 
 log:
   log_every: 500
   ckpt_every: 12_500
-  tag: baseline-finetune-constant
+  tag: finetune-const
 
 wandb:
   entity: vit-diffusion
   project: DiT-ImageNet256-latent-finetune
-  group: baseline-finetune-constant
+  group: finetune-const

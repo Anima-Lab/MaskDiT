@@ -40,12 +40,14 @@ from fid import calc
 from models.maskdit import Precond_models
 from train_utils.loss import Losses
 from train_utils.datasets import imagenet_lmdb_dataset
+from train_utils.helper import get_mask_ratio_fn
+
 from sample import generate_with_net
 from utils import dist, mprint, get_latest_ckpt, Logger, \
     ddp_sync, init_processes, cleanup, \
     str2bool, parse_str_none, parse_int_list, parse_float_none
 
-from diffusers.models import AutoencoderKL
+from autoencoder import get_model
 
 # ------------------------------------------------------------
 # Training Helper Function
@@ -98,8 +100,11 @@ def train_loop(args):
     global_batch_size = batch_gpu_total * size
     mprint(f"Global batchsize: {global_batch_size},  batchsize per GPU: {batch_gpu_total}, micro_batch: {micro_batch}.")
 
+    class_dropout_prob = config.model.class_dropout_prob
     log_every = config.log.log_every
     ckpt_every = config.log.ckpt_every
+    mask_ratio_fn = get_mask_ratio_fn(config.model.mask_ratio_fn, 
+                                      config.model.mask_ratio, config.model.mask_ratio_min)
 
     # Setup an experiment folder
     model_name = config.model.model_type.replace("/", "-")  # e.g., DiT-XL/2 --> DiT-XL-2 (for naming folders)
@@ -153,7 +158,7 @@ def train_loop(args):
 
     # Create model:
 
-    vae = AutoencoderKL.from_pretrained('stabilityai/sd-vae-ft-ema').to(device)
+    vae = get_model(args.pretrained_path).to(device)
     vae = torch.compile(vae)
     assert config.model.in_size * 8 == config.data.resolution
     model = Precond_models[config.model.precond](
@@ -212,8 +217,7 @@ def train_loop(args):
     model = DDP(model.to(device), device_ids=[device])
 
     # Setup loss
-    loss_fn = Losses[config.model.precond](class_dropout_prob=config.model.class_dropout_prob, 
-                                           uncond_mask_ratio=config.model.uncond_mask_ratio)
+    loss_fn = Losses[config.model.precond]()
 
     # Prepare models for training:
     if args.ckpt_path is None:
@@ -238,20 +242,24 @@ def train_loop(args):
             x = x.to(device)
             with torch.no_grad():
                 # map input image to latent space and normalize it. 
-                x = vae.encode(x).latent_dist.sample().mul_(0.18215)
+                x = vae.encode(x)
             # x = torch.randn([x.shape[0], 4, 32, 32], device=device)
             y = label_table[y.to(device)]
 
             # Accumulate gradients.
             loss_batch = 0
             model.zero_grad(set_to_none=True)
+            curr_mask_ratio = mask_ratio_fn((train_steps - train_steps_start) / config.train.max_num_steps)
             for round_idx in range(num_accumulation_rounds):
                 with ddp_sync(model, (round_idx == num_accumulation_rounds - 1)):
                     x_ = x[round_idx * micro_batch: (round_idx + 1) * micro_batch]
                     y_ = y[round_idx * micro_batch: (round_idx + 1) * micro_batch]
+                    if class_dropout_prob > 0:  # unconditional training with probability class_dropout_prob
+                        y_ = y_ * (torch.rand([y_.shape[0], 1], device=device) >= class_dropout_prob).to(y.dtype)
 
                     with torch.autocast(device_type="cuda", enabled=enable_amp):
-                        loss = loss_fn(net=model, images=x_, labels=y_, mask_ratio=config.model.mask_ratio,
+                        loss = loss_fn(net=model, images=x_, labels=y_, 
+                                       mask_ratio=curr_mask_ratio,
                                        mae_loss_coef=config.model.mae_loss_coef)
                         loss_mean = loss.sum().mul(1 / batch_gpu_total)
                     # loss_mean.backward()
@@ -270,6 +278,8 @@ def train_loop(args):
             running_loss += loss_batch
             log_steps += 1
             train_steps += 1
+            if train_steps > (train_steps_start + config.train.max_num_steps):
+                break
             if train_steps % log_every == 0:
                 # Measure training speed:
                 torch.cuda.synchronize()

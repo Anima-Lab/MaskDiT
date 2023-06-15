@@ -4,7 +4,7 @@ data:
   resolution: 32
   num_channels: 4
   random_flip: True
-  root: /imagenet_lmdb
+  root: /imagenet_lmdb/train
   feat_path: None
 
 model:

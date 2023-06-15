@@ -16,7 +16,7 @@ model:
   use_decoder: True
   ext_feature_dim: 0
   pad_cls_token: False
-  mask_ratio: 0.0
+  mask_ratio: 0.5
   mask_ratio_fn: cos4 
   mask_ratio_min: 0
   mae_loss_coef: 0.1
@@ -42,9 +42,9 @@ eval: # FID evaluation
 log:
   log_every: 500
   ckpt_every: 12_500
-  tag: baseline-finetune-constant
+  tag: finetune-cos
 
 wandb:
-  entity: vit-diffusion
-  project: DiT-ImageNet256-latent-finetune
-  group: baseline-finetune-constant
+  entity: MaskDiT
+  project: MaskDiT-ImageNet256-latent-finetune
+  group: finetune-cos
