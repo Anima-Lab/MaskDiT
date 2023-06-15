@@ -38,7 +38,7 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader
 
 from utils import *
-import datasets
+from train_utils.datasets import ImageFolderDataset
 
 INCEPTION_PKL = '/diffusion_ws/ViT_Diffusion/assets/fid_stats/inception-2015-12-05.pkl'
 
@@ -63,7 +63,7 @@ def calculate_inception_stats(
 
     # List images.
     mprint(f'Loading images from "{image_path}"...')
-    dataset_obj = datasets.ImageFolderDataset(path=image_path, max_size=num_expected, random_seed=seed)
+    dataset_obj = ImageFolderDataset(path=image_path, max_size=num_expected, random_seed=seed)
     if num_expected is not None and len(dataset_obj) < num_expected:
         raise click.ClickException(f'Found {len(dataset_obj)} images, but expected at least {num_expected}')
     if len(dataset_obj) < 2:
