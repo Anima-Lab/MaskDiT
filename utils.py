@@ -4,7 +4,7 @@
 
 # This code is adapted from https://github.com/NVlabs/edm/blob/main/generate.py. 
 # The original code is licensed under a Creative Commons 
-# Attribution-NonCommercial-ShareAlike 4.0 International License, which is can be found at LICENSE_EDM.txt. 
+# Attribution-NonCommercial-ShareAlike 4.0 International License, which is can be found at licenses/LICENSE_EDM.txt. 
 
 
 import os

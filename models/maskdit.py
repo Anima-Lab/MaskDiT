@@ -5,7 +5,7 @@
 # This code is adapted from https://github.com/facebookresearch/mae/blob/main/models_mae.py 
 # and https://github.com/facebookresearch/DiT/blob/main/models.py. 
 # The original code is licensed under a Attribution-NonCommercial 4.0 InternationalCreative Commons License, 
-# which is can be found at LICENSE_MAE.txt and LICENSE_DIT.txt.
+# which is can be found at licenses/LICENSE_MAE.txt and licenses/LICENSE_DIT.txt.
 
 
 import torch

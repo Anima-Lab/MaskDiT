@@ -1,5 +1,5 @@
 # Borrowed from U-ViT: https://github.com/baofff/U-ViT/blob/main/libs/autoencoder.py. 
-# The original code is licensed under MIT License, which is can be found at LICENSE_UVIT.txt.
+# The original code is licensed under MIT License, which is can be found at licenses/LICENSE_UVIT.txt.
 
 import torch
 import torch.nn as nn

@@ -3,7 +3,7 @@
 # Copyright (c) [2023] [Anima-Lab]
 
 # This code is adapted from https://github.com/openai/guided-diffusion/blob/main/evaluations/evaluator.py. 
-# The original code is licensed under a MIT License, which is can be found at LICENSE_ADM.txt. 
+# The original code is licensed under a MIT License, which is can be found at licenses/LICENSE_ADM.txt. 
 
 
 import argparse
