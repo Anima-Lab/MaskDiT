@@ -44,10 +44,8 @@ class EDMLoss:
 
     def __call__(self, net,
                  images, 
-                 encoder=None,      # ema encoder to encode x_t
                  labels=None, 
                  mask_ratio=0, 
-                 cond_mask_ratio=0,
                  mae_loss_coef=0, 
                  feat=None, augment_pipe=None):
         # sample x_t
@@ -56,13 +54,6 @@ class EDMLoss:
         weight = (sigma ** 2 + self.sigma_data ** 2) / (sigma * self.sigma_data) ** 2
         y, augment_labels = augment_pipe(images) if augment_pipe is not None else (images, None)
         n = torch.randn_like(y) * sigma
-
-        # encode x_t
-        if encoder is not None:
-            with torch.no_grad():
-                feat = encoder.encode(y + n, sigma, labels, mask_ratio=cond_mask_ratio, feat=feat)
-        else:
-            mask_dict = None 
 
         model_out = net(y + n, sigma, labels, mask_ratio=mask_ratio, mask_dict=None, feat=feat)
         D_yn = model_out['x']

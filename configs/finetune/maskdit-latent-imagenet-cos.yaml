@@ -1,0 +1,51 @@
+data:
+  dataset: imagenet256-latent
+  category: lmdb
+  resolution: 32
+  num_channels: 4
+  random_flip: True
+  root: /imagenet_256_latent_lmdb
+  feat_path: None
+
+model:
+  precond: edm
+  model_type: DiT-XL/2
+  in_size: 32
+  in_channels: 4 
+  num_classes: 1000
+  use_decoder: True
+  ext_feature_dim: 0
+  pad_cls_token: False
+  mask_ratio: 0.0
+  mask_ratio_fn: cos4 
+  mask_ratio_min: 0
+  cond_mask_ratio: 0
+  mae_loss_coef: 0.1
+  class_dropout_prob: 0.1
+  self_cond: False
+
+train:
+  tf32: True
+  amp: False
+  batchsize: 64   # batchsize per GPU
+  grad_accum: 1
+  epochs: 1000
+  lr: 0.00005
+  lr_rampup_kimg: 0
+  xflip: False
+  max_num_steps: 100_000
+
+eval: # FID evaluation
+  cfg_scales: [1.6, 1.7]
+  batchsize: 50
+  ref_path: assets/fid_stats/fid_stats_imagenet256_guided_diffusion.npz
+
+log:
+  log_every: 500
+  ckpt_every: 12_500
+  tag: baseline-finetune-constant
+
+wandb:
+  entity: vit-diffusion
+  project: DiT-ImageNet256-latent-finetune
+  group: baseline-finetune-constant

@@ -4,7 +4,7 @@ data:
   resolution: 32
   num_channels: 4
   random_flip: True
-  root: /imagenet_256_latent_lmdb
+  root: /imagenet_256_lmdb
   feat_path: None
 
 model:
@@ -31,6 +31,7 @@ train:
   lr: 0.0001
   lr_rampup_kimg: 0
   xflip: False
+  max_num_steps: 2000000
 
 eval: # FID evaluation
   batchsize: 50
@@ -39,9 +40,9 @@ eval: # FID evaluation
 log:
   log_every: 500
   ckpt_every: 50_000
-  tag: baseline
+  tag: pretrain
 
 wandb:
   entity: MaskDiT
-  project: MaskDiT-ImageNet256-latent-train
-  group: baseline
+  project: MaskDiT-ImageNet256-train
+  group: pretrain

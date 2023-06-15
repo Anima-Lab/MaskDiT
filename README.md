@@ -14,7 +14,7 @@ Our MaskDiT applies Automatic Mixed Precision (AMP) by default. We also add the 
 
 
 <img src="docs/bar_speed.png" width=45% style="display: inline-block;">
-<img src="docs/bar_mem.png" width=47.5%  style="display: inline-block;">
+<img src="docs/bar_mem.png" width=45%  style="display: inline-block;">
 
 ## Requirements
 - We ran our training of MaskDiT on 8 A100 GPUs for around 270 hours. 
@@ -34,10 +34,19 @@ python3 download_assets.py --name imagenet-latent-data --dest [destination direc
 ## Train
 To train from scratch, run
 ```bash
-python3 train_latent.py --config configs/train/maskdit-latent-base.yaml --num_process_per_node 8
+python3 train_latent.py --config configs/train/maskdit-latent-imagenet.yaml --num_process_per_node 8
 ```
-To finetune, 
-We also provide code for training MaskDiT without pre-encoded dataset in `train.py`. This is only for reference. We did not fully test it. 
+
+<details><summary>Train on the original ImageNet. Click to expand. </summary>
+  
+  We also provide code for training MaskDiT without pre-encoded dataset in `train.py`. This is only for reference. We did not fully test it. First, prepare the original [ImageNet dataset](https://image-net.org/download.php). 
+
+  ```bash
+  python3 train.py --config configs/train/maskdit-imagenet.yaml --num_process_per_node 8
+  ```
+</details>
+
+
 
 
 ## Generate samples

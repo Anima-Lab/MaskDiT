@@ -39,6 +39,9 @@ from fid import calc
 from models.maskdit import Precond_models
 from train_utils.loss import Losses
 from train_utils.datasets import ImageNetLatentDataset 
+
+from train_utils.helper import get_mask_ratio_fn
+
 from sample import generate_with_net
 from utils import dist, mprint, get_latest_ckpt, Logger, sample, \
     ddp_sync, init_processes, cleanup, \
@@ -99,6 +102,8 @@ def train_loop(args):
     class_dropout_prob = config.model.class_dropout_prob
     log_every = config.log.log_every
     ckpt_every = config.log.ckpt_every
+    
+    mask_ratio_fn = get_mask_ratio_fn(config.model.mask_ratio_fn, config.model.mask_ratio, config.model.mask_ratio_min)
 
     # Setup an experiment folder
     model_name = config.model.model_type.replace("/", "-")  # e.g., DiT-XL/2 --> DiT-XL-2 (for naming folders)
@@ -239,6 +244,7 @@ def train_loop(args):
             # Accumulate gradients.
             loss_batch = 0
             model.zero_grad(set_to_none=True)
+            curr_mask_ratio = mask_ratio_fn((train_steps - train_steps_start) / config.train.max_num_steps)
             for round_idx in range(num_accumulation_rounds):
                 with ddp_sync(model, (round_idx == num_accumulation_rounds - 1)):
                     x_ = x[round_idx * micro_batch: (round_idx + 1) * micro_batch]
@@ -250,7 +256,7 @@ def train_loop(args):
                     with torch.autocast(device_type="cuda", enabled=enable_amp):
                         loss = loss_fn(net=model, images=x_, labels=y_, 
                                        encoder=encoder, 
-                                       mask_ratio=config.model.mask_ratio,
+                                       mask_ratio=curr_mask_ratio,
                                        cond_mask_ratio=config.model.cond_mask_ratio,
                                        mae_loss_coef=config.model.mae_loss_coef, feat=feat)
                         loss_mean = loss.sum().mul(1 / batch_gpu_total)
