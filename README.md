@@ -16,7 +16,7 @@ Our MaskDiT applies Automatic Mixed Precision (AMP) by default. We also add the 
 <img src="docs/bar_speed.png" width=45% style="display: inline-block;"><img src="docs/bar_mem.png" width=47.5%  style="display: inline-block;">
 
 ## Requirements
-- We ran our training of MaskDiT on 8 A100 GPUs for around 270 hours. 
+- We recommend training maskDiT on 8 A100 GPUs, which takes around 260 hours to perform 2M updates with a batch size of 1024. 
 - At least one high-end GPU for sampling. 
 - [Dockerfile](Dockerfile) is provided for exact software environment. 
 
