@@ -54,7 +54,7 @@ python3 train_latent.py --config configs/finetune/maskdit-latent-imagenet-const.
 ## Generate samples
 To generate samples from provided checkpoints, for example, run
 ```bash
-python3 generate.py --config configs/test/maskdit-latent-base.yaml --ckpt_path results/2075000.pt --class_idx 388 --cfg_scale 2.5
+python3 generate.py --config configs/train/maskdit-latent-imagenet.yaml --ckpt_path results/2075000.pt --class_idx 388 --cfg_scale 2.5
 ```
 
 Checkpoints of MaskDiT can be downloaded by running `download_assets.py`. For example, 

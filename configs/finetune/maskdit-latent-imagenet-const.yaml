@@ -45,6 +45,6 @@ log:
   tag: finetune-const
 
 wandb:
-  entity: vit-diffusion
-  project: DiT-ImageNet256-latent-finetune
+  entity: MaskDiT
+  project: MaskDiT-ImageNet256-latent-finetune
   group: finetune-const

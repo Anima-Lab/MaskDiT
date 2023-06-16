@@ -44,4 +44,4 @@ log:
 wandb:
   entity: MaskDiT
   project: MaskDiT-ImageNet256-latent
-  group: baseline-no-sc-256
+  group: baseline
