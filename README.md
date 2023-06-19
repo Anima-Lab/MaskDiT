@@ -62,8 +62,8 @@ Checkpoints of MaskDiT can be downloaded by running `download_assets.py`. For ex
 python3 download_assets.py --name maskdit-finetune0 --dest results
 ```
 We provide the following checkpoints. 
-- Checkpoint with best FID 5.69 without guidance: [imagenet256-ckpt-best_without_guidance.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/cos-2037500.pthttps://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_without_guidance.pt)
-- Checkpoint with best FID 2.28 with guidance: [imagenet256-ckpt-best_with_guidance.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/2075000.pthttps://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_with_guidance.pt)
+- Checkpoint with best FID 5.69 without guidance: [imagenet256-ckpt-best_without_guidance.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_without_guidance.pt)
+- Checkpoint with best FID 2.28 with guidance: [imagenet256-ckpt-best_with_guidance.pt](https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_with_guidance.pt)
 
 
 <img src="docs/12samples_compressed.png" title="Generated samples from MaskDiT" width="850" style="display: block; margin: 0 auto;"/>
