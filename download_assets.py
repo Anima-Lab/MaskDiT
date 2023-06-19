@@ -25,7 +25,7 @@ def download_file(url, file_path):
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(file_path, 'wb') as f:
-            for chunk in tqdm(r.iter_content(chunk_size=1024 * 1024)):
+            for chunk in tqdm(r.iter_content(chunk_size=1024 * 1024 * 1024)):
                 f.write(chunk)
     print('Complete')
 
@@ -40,7 +40,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--name', type=str, required=True, choices=['imagenet256', 'imagenet128', 'imagenet64'])
+    parser.add_argument('--name', type=str, required=True, 
+                        choices=['imagenet256', 'imagenet128', 'imagenet64', 'vae', 'maskdit-unmask-finetune', 'maskdit-cos-finetune', 'maskdit-trained', 'imagenet-latent-data'])
     parser.add_argument('--dest', type=str, default='assets/fid_stats', help='Destination directory')
     args = parser.parse_args()
     main(args)
