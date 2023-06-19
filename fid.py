@@ -22,7 +22,6 @@ from torch.utils.data import DataLoader
 from utils import *
 from train_utils.datasets import ImageFolderDataset
 
-INCEPTION_PKL = '/diffusion_ws/ViT_Diffusion/assets/fid_stats/inception-2015-12-05.pkl'
 
 #----------------------------------------------------------------------------
 
@@ -36,11 +35,11 @@ def calculate_inception_stats(
 
     # Load Inception-v3 model.
     # This is a direct PyTorch translation of http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
-    # detector_url = 'https://api.ngc.nvidia.com/v2/models/nvidia/research/stylegan3/versions/1/files/metrics/inception-2015-12-05.pkl'
+    detector_url = 'https://api.ngc.nvidia.com/v2/models/nvidia/research/stylegan3/versions/1/files/metrics/inception-2015-12-05.pkl'
     mprint('Loading Inception-v3 model...')
     detector_kwargs = dict(return_features=True)
     feature_dim = 2048
-    with open(INCEPTION_PKL, 'rb') as f:
+    with open(detector_url, 'rb') as f:
         detector_net = pickle.load(f).to(device)
 
     # List images.
