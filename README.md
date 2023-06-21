@@ -81,15 +81,5 @@ Then we use the evaluator `evaluator.py` from [ADM repo](https://github.com/open
 <p align='center'> Generative performance on ImageNet-256x256. The area of each bubble indicates the FLOPs for a single forward pass during training. <p\>
 
 
-## Citation
-```bib
-@article{zheng2023fast,
-  title={Fast Training of Diffusion Models with Masked Transformers},
-  author={Zheng, Hongkai and Nie, Weili and Vahdat, Arash and Anandkumar, Anima},
-  journal={arXiv preprint arXiv:2306.09305},
-  year={2023}
-}
-```
-
 ## Acknowledgements
 Thanks to the open source codebases such as [DiT](https://github.com/facebookresearch/DiT), [MAE](https://github.com/facebookresearch/mae), [U-ViT](https://github.com/baofff/U-ViT), [ADM](https://github.com/openai/guided-diffusion), and [EDM](https://github.com/NVlabs/edm). Our codebase is built on them. 
