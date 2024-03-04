@@ -16,6 +16,8 @@ from utils import parse_float_none, parse_int_list, init_processes
 
 
 def generate(args):
+    rank = args.global_rank
+    size = args.global_size
     config = OmegaConf.load(args.config)
     label_dict = json.load(open(args.label_dict, 'r'))
     class_label = label_dict[str(args.class_idx)][1]
@@ -44,7 +46,7 @@ def generate(args):
     model = torch.compile(model)
     ckpt = torch.load(args.ckpt_path, map_location=device)
     model.load_state_dict(ckpt['ema'])
-    generate_with_net(args, model, device)
+    generate_with_net(args, model, device, rank, size)
 
     print(f'sampling class {class_label} done!')
 

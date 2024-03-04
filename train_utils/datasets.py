@@ -259,7 +259,7 @@ class ImageNetLatentDataset(Dataset):
 
         length = int(self.txn.get('length'.encode('utf-8')).decode('utf-8'))
         name = os.path.basename(path)
-        raw_shape = [length // 2, num_channels, resolution, resolution]  # 1281167 x 4 x 32 x 32
+        raw_shape = [length, num_channels, resolution, resolution]  # 1281167 x 4 x 32 x 32
         if raw_shape[2] != resolution or raw_shape[3] != resolution:
             raise IOError('Image files do not match the specified resolution')
 

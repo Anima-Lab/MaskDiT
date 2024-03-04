@@ -9,14 +9,17 @@ import requests
 from tqdm import tqdm
 
 _url_dict = {
-    'imagenet256': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/256/VIRTUAL_imagenet256_labeled.npz', 
-    'imagenet128': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/128/VIRTUAL_imagenet128_labeled.npz',
-    'imagenet64': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/64/VIRTUAL_imagenet64_labeled.npz',
-    'vae': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/autoencoder_kl.pth',
-    'maskdit-unmask-finetune': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_with_guidance.pt',
-    'maskdit-cos-finetune': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet256-ckpt-best_without_guidance.pt',
-    'maskdit-trained': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/2000000.pt', 
-    'imagenet-latent-data': 'https://maskdit-bucket.s3.us-west-2.amazonaws.com/imagenet_256_latent_lmdb.zip',
+    'imagenet512': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/512/VIRTUAL_imagenet512.npz',
+    'imagenet256': 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/256/VIRTUAL_imagenet256_labeled.npz',
+    'vae': 'https://slurm-ord.s3.amazonaws.com/ckpts/autoencoder_kl.pth',
+    'maskdit256-guidance': 'https://slurm-ord.s3.amazonaws.com/ckpts/256/imagenet256-ckpt-best_with_guidance.pt',
+    'maskdit256-conditional': 'https://slurm-ord.s3.amazonaws.com/ckpts/256/imagenet256-ckpt-best_without_guidance.pt',
+    'maskdit256-trained': 'https://slurm-ord.s3.amazonaws.com/ckpts/256/2000000.pt',
+    'imagenet256-latent-lmdb': 'https://slurm-ord.s3.amazonaws.com/datasets/imagenet_256_latent_lmdb/train/',
+    'inception': 'https://api.ngc.nvidia.com/v2/models/nvidia/research/stylegan3/versions/1/files/metrics/inception-2015-12-05.pkl',
+    'maskdit512-guidance': 'https://slurm-ord.s3.amazonaws.com/ckpts/512/1080000.pt',
+    'maskdit512-conditional': 'https://slurm-ord.s3.amazonaws.com/ckpts/512/1050000.pt',
+    'imagenet512-latent-wds': 'https://slurm-ord.s3.amazonaws.com/datasets/imagenet-wds/',
 }
 
 
@@ -32,16 +35,27 @@ def download_file(url, file_path):
 
 def main(args):
     url = _url_dict[args.name]
-    file_name = url.split('/')[-1]
     os.makedirs(args.dest, exist_ok=True)
-    file_path = os.path.join(args.dest, file_name)
-    download_file(url, file_path)
+    if args.name == 'imagenet512-latent-wds':
+        num_files = 128
+        for i in range(num_files):
+            file_name = f'latent_imagenet_512_train-{i:04d}.tar'
+            file_path = os.path.join(args.dest, file_name)
+            download_file(url + file_name, file_path)
+    elif args.name == 'imagenet256-latent-lmdb':
+        file_lists = ['data.mdb', 'lock.mdb']
+        for file_name in file_lists:
+            file_path = os.path.join(args.dest, file_name)
+            download_file(url + file_name, file_path)
+    else:
+        file_name = url.split('/')[-1]
+        file_path = os.path.join(args.dest, file_name)
+        download_file(url, file_path)
 
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--name', type=str, required=True, 
-                        choices=['imagenet256', 'imagenet128', 'imagenet64', 'vae', 'maskdit-unmask-finetune', 'maskdit-cos-finetune', 'maskdit-trained', 'imagenet-latent-data'])
+    parser.add_argument('--name', type=str, required=True, help='Key of the asset')
     parser.add_argument('--dest', type=str, default='assets/fid_stats', help='Destination directory')
     args = parser.parse_args()
     main(args)

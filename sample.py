@@ -228,9 +228,7 @@ def retrieve_n_features(batch_size, feat_path, feat_dim, num_classes, device, sp
 
 
 @torch.no_grad()
-def generate_with_net(args, net, device, feat_path=None, ext_feature_dim=0):
-    rank = args.global_rank
-    size = args.global_size
+def generate_with_net(args, net, device, rank, size):
     seeds = args.seeds
     num_batches = ((len(seeds) - 1) // (args.max_batch_size * size) + 1) * size
     all_batches = torch.as_tensor(seeds).tensor_split(num_batches)
@@ -270,10 +268,7 @@ def generate_with_net(args, net, device, feat_path=None, ext_feature_dim=0):
 
         # retrieve features from training set [support random only]
         feat = None
-        if feat_path is not None and os.path.isdir(feat_path):
-            feat, class_labels = retrieve_n_features(batch_size, feat_path, ext_feature_dim,
-                                                     net.num_classes, device, sample_mode=args.sample_mode)
-
+        
         # Generate images.
         def recur_decode(z):
             try:

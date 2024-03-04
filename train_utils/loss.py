@@ -13,6 +13,7 @@ import torch
 import torch.nn.functional as F
 
 from utils import *
+from train_utils.helper import unwrap_model
 
 
 # Improved loss function proposed in the paper "Elucidating the Design Space
@@ -51,8 +52,10 @@ class EDMLoss:
                 loss += mae_loss_coef * mae_loss(net.module, y + n, D_yn, 1 - unmask)
         else:
             loss = mean_flat(loss)  # (N)
-        if mask_ratio == 0.0:
-            loss += 0 * torch.sum(net.module.model.mask_token)
+        
+        raw_net = unwrap_model(net)
+        if mask_ratio == 0.0 and raw_net.model.mask_token is not None:
+            loss += 0 * torch.sum(raw_net.model.mask_token)
         assert loss.ndim == 1
         return loss
 

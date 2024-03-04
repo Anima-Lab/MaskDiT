@@ -1,0 +1,47 @@
+data:
+  dataset: imagenet512-latent
+  category: lmdb
+  resolution: 64
+  num_channels: 4
+  root: ../data/imagenet512-wds
+  total_num: 1281167
+
+model:
+  precond: edm
+  model_type: DiT-XL/2
+  in_size: 64
+  in_channels: 4 
+  num_classes: 1000
+  use_decoder: True
+  ext_feature_dim: 0
+  pad_cls_token: False
+  mask_ratio: 0.0
+  mask_ratio_fn: constant
+  mask_ratio_min: 0
+  mae_loss_coef: 0.1
+  class_dropout_prob: 0.1
+
+train:
+  tf32: True
+  amp: False
+  batchsize: 16   # batchsize per GPU
+  grad_accum: 1
+  epochs: 2000
+  lr: 0.00005
+  lr_rampup_kimg: 0
+  xflip: False
+  max_num_steps: 50_000
+
+eval: # FID evaluation
+  batchsize: 50
+  ref_path: assets/fid_stats/VIRTUAL_imagenet512.npz
+
+log:
+  log_every: 100
+  ckpt_every: 10_000
+  tag: finetune-4n-wds
+
+wandb:
+  entity: MaskDiT
+  project: MaskDiT-ImageNet512-latent-finetune
+  group: finetune-wds-4nodes
