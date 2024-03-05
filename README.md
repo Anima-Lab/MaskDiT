@@ -49,7 +49,7 @@ We provide pretrained models of MaskDiT for ImageNet256 and ImageNet512 in the f
 | :------- | :--------- | :---- | :------------------------------------------------------------------------------------------------------------------------ |
 | Yes      | 256x256    | 2.28  | [imagenet256-guidance.pt](https://slurm-ord.s3.amazonaws.com/ckpts/256/imagenet256-ckpt-best_with_guidance.pt)       |
 | No       | 256x256    | 5.69  | [imagenet256-conditional.pt](https://slurm-ord.s3.amazonaws.com/ckpts/256/imagenet256-ckpt-best_without_guidance.pt) |
-| Yes      | 512x512    | 2.50  | [imagenet512-guidance.pt](https://slurm-ord.s3.amazonaws.com/ckpts/512/1080000.pt)                            `       |
+| Yes      | 512x512    | 2.50  | [imagenet512-guidance.pt](https://slurm-ord.s3.amazonaws.com/ckpts/512/1080000.pt)                                   |
 | No       | 512x512    | 10.79 | [imagenet512-conditional.pt](https://slurm-ord.s3.amazonaws.com/ckpts/512/1050000.pt)                                 |                                                                                       |
 
 ## Generate from pretrained models
