@@ -142,6 +142,19 @@ Then we use the evaluator `evaluator.py`
 from [ADM repo](https://github.com/openai/guided-diffusion/tree/main/evaluations), or `fid.py`
 from [EDM repo](https://github.com/NVlabs/edm), to evaluate the generated samples.
 
+
+### Citation
+
+```
+@inproceedings{Zheng2024MaskDiT,
+  title={Fast Training of Diffusion Models with Masked Transformers},
+  author={Zheng, Hongkai and Nie, Weili and Vahdat, Arash and Anandkumar, Anima},
+  booktitle = {Transactions on Machine Learning Research (TMLR)},
+  year={2024}
+}
+```
+
+
 ## Acknowledgements
 
 Thanks to the open source codebases such as [DiT](https://github.com/facebookresearch/DiT)
