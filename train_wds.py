@@ -19,7 +19,6 @@ import webdataset as wds
 
 import accelerate
 
-
 from fid import calc
 from models.maskdit import Precond_models
 from train_utils.loss import Losses
@@ -27,7 +26,7 @@ from train_utils.loss import Losses
 from train_utils.helper import get_mask_ratio_fn, get_one_hot, requires_grad, update_ema, unwrap_model
 
 from sample import generate_with_net
-from utils import dist, mprint, get_latest_ckpt, get_clean_ckpt, Logger, sample, \
+from utils import dist, mprint, get_latest_ckpt, Logger, sample, \
     str2bool, parse_str_none, parse_int_list, parse_float_none
 
 
@@ -70,9 +69,7 @@ def make_loader(root, mode='train', batch_size=32,
                 resampled=False, world_size=1, total_num=1281167, 
                 bufsize=1000, initial=100):
     data_list = get_file_paths(root)
-    num_batches_in_total =  total_num // (batch_size * world_size)
-    # paths = split_by_proc(data_list, rank, world_size)
-    # print(f'rank: {rank}, world_size: {world_size}, len(paths): {len(paths)}')
+    num_batches_in_total = total_num // (batch_size * world_size)
     if resampled:
         repeat = True
         splitter = False
@@ -94,7 +91,6 @@ def make_loader(root, mode='train', batch_size=32,
         .batched(batch_size, partial=False)
         )
     
-    # mprint(f'dataset created from {paths}')
     loader = wds.WebLoader(dataset, batch_size=None, num_workers=num_workers, shuffle=False, persistent_workers=True)
     if resampled:
         loader = loader.with_epoch(num_batches_in_total)
@@ -114,8 +110,8 @@ def train_loop(args):
     if config.train.tf32:
         torch.set_float32_matmul_precision('high')
         
-    accelerator = accelerate.Accelerator(mixed_precision=config.train.amp, 
-                                         gradient_accumulation_steps=config.train.grad_accum, 
+    accelerator = accelerate.Accelerator(mixed_precision=config.train.amp,
+                                         gradient_accumulation_steps=config.train.grad_accum,
                                          log_with='wandb')
     # setup wandb
     if args.use_wandb:
@@ -171,10 +167,8 @@ def train_loop(args):
     if accelerator.is_main_process:
         logger = Logger(file_name=f'{experiment_dir}/log.txt', file_mode="a+", should_flush=True)
     mprint(f"Experiment directory created at {experiment_dir}")
-    
 
     # Setup dataset
-
     loader = make_loader(config.data.root, 
                          mode='train', 
                          batch_size=batch_gpu_total, 
@@ -183,8 +177,6 @@ def train_loop(args):
                          world_size=size,
                          total_num=config.data.total_num)
 
-
-    # steps_per_epoch = len(loader) // global_batch_size
     steps_per_epoch = config.data.total_num // global_batch_size
     mprint(f"{steps_per_epoch} steps per epoch")
 
@@ -215,8 +207,8 @@ def train_loop(args):
 
     if args.ckpt_path is not None:
         ckpt = torch.load(args.ckpt_path, map_location=device)
-        model.load_state_dict(get_clean_ckpt(ckpt['model']), strict=args.use_strict_load)
-        ema.load_state_dict(get_clean_ckpt(ckpt['ema']), strict=args.use_strict_load)
+        model.load_state_dict(ckpt['model'], strict=args.use_strict_load)
+        ema.load_state_dict(ckpt['ema'], strict=args.use_strict_load)
         mprint(f'Load weights from {args.ckpt_path}')
         if args.use_strict_load:
             optimizer.load_state_dict(ckpt['opt'])

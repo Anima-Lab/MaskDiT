@@ -7,19 +7,15 @@ Training MaskDiT on latent dataset in LMDB format. Used for experiments on Image
 
 import argparse
 import os.path
-from collections import OrderedDict
 from copy import deepcopy
 from time import time
 from omegaconf import OmegaConf
-
 
 import apex
 import torch
 import accelerate
 
-import torch.multiprocessing as mp
-from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data import DistributedSampler, DataLoader
+from torch.utils.data import DataLoader
 
 from fid import calc
 from models.maskdit import Precond_models
@@ -30,7 +26,6 @@ from train_utils.helper import get_mask_ratio_fn, requires_grad, update_ema, unw
 
 from sample import generate_with_net
 from utils import dist, mprint, get_latest_ckpt, Logger, sample, \
-    ddp_sync, init_processes, cleanup, \
     str2bool, parse_str_none, parse_int_list, parse_float_none
 
 
