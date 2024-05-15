@@ -1,4 +1,4 @@
-data:
+ta:
   dataset: imagenet256-latent
   category: lmdb
   resolution: 32
@@ -19,6 +19,7 @@ model:
   cond_mask_ratio: 0
   mae_loss_coef: 0.1
   class_dropout_prob: 0.1
+  self_cond: False
 
 train:
   tf32: False
