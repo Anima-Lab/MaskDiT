@@ -51,7 +51,6 @@ We provide pretrained models of MaskDiT for ImageNet256 and ImageNet512 in the f
 | No       | 256x256    | 5.69  | [imagenet256-conditional.pt](https://slurm-ord.s3.amazonaws.com/ckpts/256/imagenet256-ckpt-best_without_guidance.pt) |
 | Yes      | 512x512    | 2.50  | [imagenet512-guidance.pt](https://slurm-ord.s3.amazonaws.com/ckpts/512/1080000.pt)                                   |
 | No       | 512x512    | 10.79 | [imagenet512-conditional.pt](https://slurm-ord.s3.amazonaws.com/ckpts/512/1050000.pt)                                 |                                                                                       |
-
 ## Generate from pretrained models
 
 To generate samples from provided checkpoints, run
@@ -67,6 +66,17 @@ python3 generate.py --config configs/test/maskdit-512.yaml --ckpt_path [path to 
 <img src="assets/figs/imagenet512.png" title="Generated samples from MaskDiT 512x512." width="850" style="display: block; margin: 0 auto;"/>
 <p align='center'> Generated samples from MaskDiT 512x512 with CFG (scale=1.5).
 <p\>
+
+## Prepare dataset for generating images
+There is always an error when I tried to run the bash file, after I checked the source codes I think I found the error.
+Those two lines of the codes will always cause an error when I tried to run them.
+`python3 download_assets.py --name imagenet256-latent-lmdb --dest ../data/imagenet256`
+`python3 download_assets.py --name imagenet512-latent-lmdb --dest ../data/imagenet512`
+
+In order to solve the error, please run the following codes:
+`python3 download_assets.py --name vae --dest assets/stable_diffusion` \
+This will download the `autoencoder_kl.pth` we need in order to generate images.
+
 
 ## Prepare dataset
 
